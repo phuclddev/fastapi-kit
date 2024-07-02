@@ -5,7 +5,7 @@ from . import models
 from .database import engine
 from .routers import post, user, auth, vote
 from .config import settings
-
+from .seed import seed_data
 
 # models.Base.metadata.create_all(bind=engine)
 
@@ -27,6 +27,7 @@ app.include_router(auth.router)
 app.include_router(vote.router)
 
 
-@app.get("/")
+@app.get("/seed")
 def root():
+    seed_data()
     return {"message": "Hello World pushing out to ubuntu"}
