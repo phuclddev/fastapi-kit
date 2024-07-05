@@ -3,8 +3,12 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from sqlalchemy import func
-from .. import models, schemas, oauth2
-from ..database import get_db
+
+from ..services import oauth2
+
+from ..db import models
+from .. import schemas
+from ..db.database import get_db
 from datetime import datetime, timedelta
 
 router = APIRouter(
@@ -13,23 +17,25 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[schemas.PostOut])
-def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
+def get_posts(
+    db: Session = Depends(get_db), 
+    current_user: int = Depends(oauth2.get_current_user), 
+    limit: int = 10, skip: int = 0, 
+    search: Optional[str] = "",
+    days: Optional[int] = None
+    ):
+    
+    query = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id)
+    
+    if search:
+        query = query.filter(models.Post.title.contains(search) | models.Post.content.contains(search))
 
-    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
-        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return posts
+    if days:
+        time_threshold = datetime.utcnow() - timedelta(days=days)
+        query = query.filter(models.Post.created_at >= time_threshold)
 
-
-@router.get("/latest", response_model=List[schemas.PostOut])
-def get_latest_posts(
-    db: Session = Depends(get_db),
-    current_user: int = Depends(oauth2.get_current_user),
-    days: Optional[int] = 1
-):
-    time_threshold = datetime.utcnow() - timedelta(days=days)
-    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
-        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
-        models.Post.created_at >= time_threshold).all()
+    posts = query.limit(limit).offset(skip).all()
     return posts
 
 

@@ -6,10 +6,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from app.main import app
 
 from app.config import settings
-from app.database import get_db
-from app.database import Base
-from app.oauth2 import create_access_token
-from app import models
+from app.db.database import get_db
+from app.db.database import Base
+from app.services.oauth2 import create_access_token
+from app.db import models
 from alembic import command
 
 
