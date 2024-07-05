@@ -53,3 +53,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(models.User).filter(models.User.id == token.id).first()
 
     return user
+
+def require_permission(permission_name: str):
+    def permission_checker(current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
+        user = db.query(models.User).filter(models.User.id == current_user.id).first()
+        for role in user.roles:
+            for permission in role.permissions:
+                if permission.name == permission_name:
+                    return current_user
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+    return permission_checker

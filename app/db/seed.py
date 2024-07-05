@@ -85,14 +85,31 @@ def random_date(start, end):
 
 def seed_data():
     session = Session(bind=engine)
+
+    # Create permissions
+    create_post = models.Permission(name="create_post")
+    edit_post = models.Permission(name="edit_post")
+    delete_post = models.Permission(name="delete_post")
+    view_post = models.Permission(name="view_post")
+
+    session.add_all([create_post, edit_post, delete_post, view_post])
+    session.commit()
+
+    # Create roles and assign permissions
+    admin_role = models.Role(name="admin", permissions=[create_post, edit_post, delete_post, view_post])
+    editor_role = models.Role(name="editor", permissions=[create_post, edit_post, view_post])
+    viewer_role = models.Role(name="viewer", permissions=[view_post])
+
+    session.add_all([admin_role, editor_role, viewer_role])
+    session.commit()
     
     # Create some users
-    user1 = models.User(email="user1@gmail.com", password=utils.hash("pass"))
-    user2 = models.User(email="user2@gmail.com", password=utils.hash("pass"))
-    user3 = models.User(email="user3@gmail.com", password=utils.hash("pass"))
-    user4 = models.User(email="user4@gmail.com", password=utils.hash("pass"))
-    user5 = models.User(email="user5@gmail.com", password=utils.hash("pass"))
-    user6 = models.User(email="user6@gmail.com", password=utils.hash("pass"))
+    user1 = models.User(email="admin@gmail.com", password=utils.hash("pass"), roles=[admin_role])
+    user2 = models.User(email="editor@gmail.com", password=utils.hash("pass"), roles=[editor_role])
+    user3 = models.User(email="viewer@gmail.com", password=utils.hash("pass"), roles=[viewer_role])
+    user4 = models.User(email="user4@gmail.com", password=utils.hash("pass"), roles=[viewer_role])
+    user5 = models.User(email="user5@gmail.com", password=utils.hash("pass"), roles=[viewer_role])
+    user6 = models.User(email="user6@gmail.com", password=utils.hash("pass"), roles=[viewer_role])
     
     session.add(user1)
     session.add(user2)
