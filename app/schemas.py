@@ -14,6 +14,8 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass
 
+class PostUpdate(PostBase):
+    pass
 
 class UserOut(BaseModel):
     id: int

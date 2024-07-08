@@ -8,7 +8,7 @@ from .. import schemas
 
 
 router = APIRouter(
-    prefix="/vote",
+    prefix="/api/vote",
     tags=['Vote']
 )
 

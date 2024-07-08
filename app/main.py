@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import models
 from .db.database import engine
-from .routers import post, user, auth, vote
+from .routers import post, user, auth, vote, admin_post
 from .config import settings
 from .db.seed import seed_data
 
@@ -21,11 +21,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include user routers
 app.include_router(post.router)
 app.include_router(user.router)
 app.include_router(auth.router)
 app.include_router(vote.router)
 
+# Include admin routers
+app.include_router(admin_post.router)
 
 @app.get("/seed")
 def root():
